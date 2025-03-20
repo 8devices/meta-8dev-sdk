@@ -3,3 +3,8 @@
 *.orig
 *.rej
 *~
+/.build
+/.config
+/build/
+/build-*/
+/downloads/

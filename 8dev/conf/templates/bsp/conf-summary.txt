@@ -1,0 +1,1 @@
+../../../../meta-poky/meta-poky/conf/templates/default/conf-summary.txt

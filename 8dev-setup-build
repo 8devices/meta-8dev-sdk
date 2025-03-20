@@ -1,0 +1,125 @@
+#!/bin/bash
+
+if [ -n "$BASH_SOURCE" ]; then
+	THIS_FILE=${BASH_SOURCE}
+elif [ -n "$ZSH_NAME" ]; then
+	THIS_FILE=${0}
+else
+	THIS_FILE=$0
+fi
+THIS_DIR=$(dirname $THIS_FILE)
+WSROOT=$(realpath $THIS_DIR)
+
+OPT_VERBOSE=
+OPT_HELP=
+OPT_LIST=
+ARGS=
+while [ -n "$1" ]; do
+	case "$1" in
+		-v) OPT_VERBOSE=1 ;;
+		-h) OPT_HELP=1 ;;
+		-l) OPT_LIST=1 ;;
+		*) ARGS="$ARGS $1"
+	esac
+	shift
+done
+set -- $ARGS
+
+# XXX: layerlist parameter has to be absolute path
+# because build env script uses it to derive base
+# for template path which is passed further for ENV
+# initialisation.
+conf_list() {
+	$WSROOT/poky/scripts/oe-setup-build --layerlist `realpath 8dev/layers.json` list ${OPT_VERBOSE:+-v}
+}
+
+conf_setup() {
+	$WSROOT/poky/scripts/oe-setup-build --layerlist `realpath 8dev/layers.json` setup --no-shell -c $1 ${2:+-b $2}
+}
+
+if [ -n "$OPT_HELP" ]; then
+	echo "Usage: $0 [-h] [-l] [config-name] [build-dir]"
+	exit 0
+fi
+if [ -n "$OPT_LIST" ]; then
+	conf_list | head -n -1
+	exit $?
+fi
+
+CONFIG_NAME=
+BUILD_DIR=
+
+if [ -z "$*" ]; then
+	curse=
+	if [ -z "$NO_DIALOG" ]; then
+		[ -z "$curse" ] && which whiptail >/dev/null 2>&1 && curse=whiptail
+		[ -z "$curse" ] && which dialog >/dev/null 2>&1 && curse=dialog
+	fi
+	# Process conf_list output to extract machine names and descriptions
+	readarray -t MENU_ITEMS < <(conf_list | awk '
+		/^[0-9]+\./ {
+			name = $2;
+			getline;
+			print name;
+			print $0;
+		}
+	')
+	if [ -n "$curse" ]; then
+		CONFIG_NAME=$($curse --nocancel --title "Available Configurations" \
+			--menu "Please choose a configuration template" 0 80 10 "${MENU_ITEMS[@]}" 3>&1 1>&2 2>&3)
+		if [ $? -ne 0 ]; then
+			echo "Configuration selection (via dialog) cancelled" >&2
+			exit 1
+		fi
+	fi
+	if [ -z "$CONFIG_NAME" ]; then
+		echo "Available configuration templates:"
+		echo
+		for ((i=0, j=1; i<${#MENU_ITEMS[@]}; i+=2, j+=1)); do
+			echo " $j. ${MENU_ITEMS[$i]} - ${MENU_ITEMS[$i+1]}"
+		done
+		echo
+		read -p "Choose configuration [1-$((${#MENU_ITEMS[@]}/2))]: " CONFIG_IDX
+		if [ -z "$CONFIG_IDX" ]; then
+			echo "No configuration selected. Exiting." >&2
+			exit 1
+		fi
+		CONFIG_NAME=${MENU_ITEMS[($CONFIG_IDX-1)*2]}
+		if [ -z "$CONFIG_NAME" ]; then
+			echo "Invalid configuration selection: $CONFIG_IDX" >&2
+			exit 1
+		fi
+	fi
+else
+	CONFIG_NAME=$1
+fi
+
+BUILD_DIR=${2:-"build-$CONFIG_NAME"}
+
+echo "Config template: $CONFIG_NAME"
+echo "Build directory: $BUILD_DIR"
+
+conf_setup $CONFIG_NAME $BUILD_DIR >/dev/null || {
+	echo "Build setup failed for $CONFIG_NAME @ $BUILD_DIR" >&2
+	exit 1
+}
+
+# Preserve build dir and config profile in fixed file for reinitialisation.
+[ -n "$BUILD_DIR" ] && echo $BUILD_DIR > $WSROOT/.build
+[ -n "$CONFIG_NAME" ] && echo $CONFIG_NAME > $WSROOT/.config
+
+echo
+. $WSROOT/8dev-init-build-env || {
+	echo "Init build environment failed" >&2
+	exit 1
+}
+echo
+. $WSROOT/8dev-init-build-conf || {
+	echo "Init build configuration failed" >&2
+	exit 1
+}
+
+echo -e "\nRunning build environment in subshell, to reinitialise in new shell session use:\n"
+echo " * '8dev-init-build-env' to reinitialise build environment source "
+echo " * '8dev-init-build-conf' to reinitialise build configuration source"
+exec $SHELL

@@ -1,0 +1,7 @@
+{
+    "layers": [
+        "../8dev",
+        "../poky/meta-poky"
+    ],
+    "version": "1.0"
+}

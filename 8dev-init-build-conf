@@ -1,0 +1,158 @@
+#!/bin/bash
+
+if [ -z "$WSROOT" ]; then
+	echo "Error: WSROOT is not defined!" >&2
+	return 1
+fi
+
+if [ -z "$BUILDDIR" ]; then
+	echo "Error: BUILDDIR is not defined!" >&2
+	return 1
+fi
+
+if [ ! -d $BUILDDIR ]; then
+	echo "Error: BUILDDIR '$BUILDDIR' directory is not initialised!" >&2
+	return 1
+fi
+
+curse=
+if [ -z "${MACHINE}" ] || [ -z "${DISTRO}" ] && [ -z "$NO_DIALOG" ]; then
+	[ -z "$curse" ] && which whiptail >/dev/null 2>&1 && curse=whiptail
+	[ -z "$curse" ] && which dialog >/dev/null 2>&1 && curse=dialog
+	[ -z "$curse" ] && NA_DIALOG=1
+fi
+
+# bitbake-layers show-layers | awk '/^=/,0 {print $2}'
+LAYERS=$(realpath --relative-to "$WSROOT" $(sed '1,/BBLAYERS.*\\/d;/"/,$d;s/\\//' "$BUILDDIR"/conf/bblayers.conf | tac))
+
+MACHINE_SELECT=$MACHINE
+if [ -z "${MACHINE_SELECT}" ]; then
+	# machines list of "<machine> (<layer>)"
+	MACHINES_LAYERS=$(echo "$LAYERS" | sed 's/\b[^ ]*\b/&\/conf\/machine/g')
+	readarray -t MACHINES_MENU < <(cd "$WSROOT" || return; find $MACHINES_LAYERS -iname \*.conf 2>/dev/null |
+		sed -e 's/\.conf//g' | awk -F'/conf/machine/' '{print $NF; print "(" $1 ")"}')
+
+	if [ -n "$curse" ]; then
+		MACHINE_SELECT=$($curse --nocancel --title "Available Machines" \
+			--menu "Please choose a machine" 0 80 10 "${MACHINES_MENU[@]}" 3>&1 1>&2 2>&3)
+		if [ $? -ne 0 ]; then
+			echo "Machine selection (via dialog) cancelled" >&2
+			return 1
+		fi
+	fi
+
+	if [ -z "${MACHINE_SELECT}" ]; then
+		echo "Available machines:"
+		echo
+		for ((i=0, j=1; i<${#MACHINES_MENU[@]}; i+=2, j+=1)); do
+			echo " $j. ${MACHINES_MENU[$i]} ${MACHINES_MENU[$i+1]}"
+		done
+		echo
+		read -r -p "Choose machine [1-$((${#MACHINES_MENU[@]}/2))]: " MACHINE_IDX
+		if [ -z "$MACHINE_IDX" ]; then
+			echo "Machine selection (via prompt) cancelled" >&2
+			return 1
+		fi
+		if [ -n "$MACHINE_IDX" ]; then
+			MACHINE_SELECT=${MACHINES_MENU[($MACHINE_IDX-1)*2]}
+			if [ -z "$MACHINE_SELECT" ]; then
+				echo "Invalid machine selection: $MACHINE_IDX" >&2
+			fi
+		fi
+		echo
+	fi
+fi
+
+DISTRO_SELECT=$DISTRO
+if [ -z "${DISTRO_SELECT}" ]; then
+	# distros list of "<distro> (<layer>)"
+	DISTROS_LAYERS=$(echo "$LAYERS" | sed 's/\b[^ ]*\b/&\/conf\/distro/g')
+	readarray -t DISTROS_MENU < <(cd "$WSROOT" || return; find $DISTROS_LAYERS -iname \*.conf 2>/dev/null |
+		sed -e 's/\.conf//g' | awk -F'/conf/distro/' '{print $NF; print "(" $1 ")"}')
+
+	DISTROS_MENU+=("nodistro" "(No distro)")
+
+	if [ -n "$curse" ]; then
+		DISTRO_SELECT=$($curse --nocancel --title "Available Distributions" \
+			--menu "Please choose a distribution" 0 80 10 "${DISTROS_MENU[@]}" 3>&1 1>&2 2>&3)
+		if [ $? -ne 0 ]; then
+			echo "Distribution selection (via dialog) cancelled" >&2
+			return 1
+		fi
+	fi
+
+	if [ -z "${DISTRO_SELECT}" ]; then
+		echo "Available distributions:"
+		echo
+		for ((i=0, j=1; i<${#DISTROS_MENU[@]}; i+=2, j+=1)); do
+			echo " $j. ${DISTROS_MENU[$i]} ${DISTROS_MENU[$i+1]}"
+		done
+		echo
+		read -r -p "Choose distribution [1-$((${#DISTROS_MENU[@]}/2))]: " DISTRO_IDX
+		if [ -z "$DISTRO_IDX" ]; then
+			echo "Distribution selection (via prompt) cancelled" >&2
+			return 1
+		fi
+		if [ -n "$DISTRO_IDX" ]; then
+			DISTRO_SELECT=${DISTROS_MENU[($DISTRO_IDX-1)*2]}
+			if [ -z "$DISTRO_SELECT" ]; then
+				echo "Invalid distribution selection: $DISTRO_IDX" >&2
+			fi
+		fi
+		echo
+	fi
+fi
+
+cat > "$BUILDDIR"/conf/auto.conf <<EOF
+# This configuration file is dynamically generated. DO NOT EDIT.
+#--------------------------------------------------------------
+EOF
+
+if [ -z "$MACHINE_SELECT" ]; then
+	echo "WARNING: No MACHINE was selected" >&2
+else
+	echo "Build machine: $MACHINE_SELECT"
+	echo "MACHINE ?= \"$MACHINE_SELECT\"" >> "$BUILDDIR"/conf/auto.conf
+fi
+if [ -z "$DISTRO_SELECT" ]; then
+	echo "WARNING: No DISTRO was selected" >&2
+else
+	echo "Build distribution: $DISTRO_SELECT"
+	echo "DISTRO ?= \"$DISTRO_SELECT\"" >> "$BUILDDIR"/conf/auto.conf
+fi
+if [ -z "$MACHINE_SELECT" ] || [ -z "$DISTRO_SELECT" ]; then
+	if [ -n "$BASH_SOURCE" ]; then
+		THIS_FILE=${BASH_SOURCE}
+	elif [ -n "$ZSH_NAME" ]; then
+		THIS_FILE=${0}
+	else
+		THIS_FILE=$0
+	fi
+	echo
+	if [ -n "$NA_DIALOG" ]; then
+		echo "To choose a machine or/and distro interactively in CLI dialog please install whiptail or dialog."
+	fi
+	if [ -z "$NO_DIALOG" ]; then
+		echo "To force choose a machine or/and distro interactively in CLI prompt please use NO_DIALOG=1 ENV variable"
+	fi
+	echo "To choose a machine or/and distro non-interactively please use the following syntax:"
+	echo "    DISTRO=<distro> MACHINE=<machine> source ${THIS_FILE}"
+	echo
+	echo "To specify explicit machine or/and distro for bitbake build use the following syntax:"
+	echo "    DISTRO=<distro> MACHINE=<machine> bitbake ..."
+	echo
+fi
+if [ -z "$MACHINE_SELECT" ]; then
+	echo "List of available MACHINEs:"
+	for ((i=0; i<${#MACHINES_MENU[@]}; i+=2)); do
+		echo " * ${MACHINES_MENU[$i]}"
+	done
+	echo
+fi
+if [ -z "$DISTRO_SELECT" ]; then
+	echo "List of available DISTROs:"
+	for ((i=0; i<${#DISTROS_MENU[@]}; i+=2)); do
+		echo " * ${DISTROS_MENU[$i]}"
+	done
+	echo
+fi
