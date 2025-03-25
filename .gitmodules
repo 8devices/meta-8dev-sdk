@@ -6,3 +6,7 @@
 	path = meta-openembedded
 	url = git://git.openembedded.org/meta-openembedded
 	branch = scarthgap
+[submodule "meta-8dev"]
+	path = meta-8dev
+	url = https://github.com/8devices/meta-8dev.git
+	branch = scarthgap
