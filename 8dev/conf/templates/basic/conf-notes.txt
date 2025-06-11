@@ -4,4 +4,5 @@
 You can now run 'bitbake <target>'
 
 Common images targets:
+    update-image-8dev-base
     8dev-image-base
