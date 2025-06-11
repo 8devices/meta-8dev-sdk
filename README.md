@@ -7,6 +7,7 @@ and recipes to build the 8devices reference DISTRO for supported MACHINES.
 
 - [Poky](https://git.yoctoproject.org/poky)
 - [Meta OpenEmbedded](https://git.openembedded.org/meta-openembedded)
+- [Meta SWUpdate](https://github.com/sbabic/meta-swupdate)
 - [Meta 8dev](https://github.com/8devices/meta-8dev)
 
 ## Host Preparation

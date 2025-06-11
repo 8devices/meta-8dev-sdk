@@ -10,3 +10,7 @@
 	path = meta-8dev
 	url = https://github.com/8devices/meta-8dev.git
 	branch = scarthgap
+[submodule "meta-swupdate"]
+	path = meta-swupdate
+	url = https://github.com/sbabic/meta-swupdate.git
+	branch = scarthgap
