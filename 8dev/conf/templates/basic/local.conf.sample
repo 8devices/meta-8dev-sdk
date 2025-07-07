@@ -32,6 +32,10 @@ BB_DISKMON_DIRS ??= "\
     HALT,${SSTATE_DIR},100M,1K \
     HALT,/tmp,10M,1K"
 
+# Always deploy images
+do_deploy[nostamp] = "1"
+do_rootfs[nostamp] = "1"
+
 # CONF_VERSION is increased each time build/conf/ changes incompatibly and is used to
 # track the version of this file when it was generated. This can safely be ignored if
 # this doesn't mean anything to you.
