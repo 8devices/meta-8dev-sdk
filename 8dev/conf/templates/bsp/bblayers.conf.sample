@@ -10,5 +10,6 @@ BBLAYERS ?= " \
   ##OEROOT##/meta-poky \
   ##OEROOT##/meta-yocto-bsp \
   ##OEROOT##/../meta-openembedded/meta-oe \
+  ##OEROOT##/../meta-qcom \
   ##OEROOT##/../meta-8dev/meta-8dev-bsp \
   "

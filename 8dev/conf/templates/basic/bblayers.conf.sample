@@ -13,6 +13,7 @@ BBLAYERS ?= " \
   ##OEROOT##/../meta-openembedded/meta-oe \
   ##OEROOT##/../meta-openembedded/meta-python \
   ##OEROOT##/../meta-openembedded/meta-networking \
+  ##OEROOT##/../meta-qcom \
   ##OEROOT##/../meta-8dev/meta-8dev-bsp \
   ##OEROOT##/../meta-8dev/meta-8dev-basic \
   "
