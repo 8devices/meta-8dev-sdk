@@ -8,6 +8,8 @@ and recipes to build the 8devices reference DISTRO for supported MACHINES.
 - [Poky](https://git.yoctoproject.org/poky)
 - [Meta OpenEmbedded](https://git.openembedded.org/meta-openembedded)
 - [Meta SWUpdate](https://github.com/sbabic/meta-swupdate)
+- [Meta Qcom](https://github.com/qualcomm-linux/meta-qcom)
+- [Meta Qcom HWE](https://github.com/qualcomm-linux/meta-qcom-hwe)
 - [Meta 8dev](https://github.com/8devices/meta-8dev)
 
 ## Host Preparation
@@ -112,5 +114,5 @@ Built images are located in the `[build-dir]/tmp/deploy/images/[MACHINE]` direct
 To upgrade your device using the deployed `fastboot_flash.py` utility:
 
    ```
-   ./fastboot_flash.py --boot aImage.gz-[MACHINE].bin --system [IMAGE]-[MACHINE].rootfs.ext4-sparse
+   ./fastboot_flash.py
    ```
