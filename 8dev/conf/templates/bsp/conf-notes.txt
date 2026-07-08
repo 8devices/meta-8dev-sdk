@@ -1,1 +1,1 @@
-../../../../meta-poky/meta-poky/conf/templates/default/conf-notes.txt
+../../../../poky/meta-poky/conf/templates/default/conf-notes.txt
