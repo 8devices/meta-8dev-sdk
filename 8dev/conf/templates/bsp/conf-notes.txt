@@ -1,1 +1,1 @@
-../../../../poky/meta-poky/conf/templates/default/conf-notes.txt
+../../../../openembedded-core/meta/conf/templates/default/conf-notes.txt

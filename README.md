@@ -5,16 +5,18 @@ and recipes to build the 8devices reference DISTRO for supported MACHINES.
 
 ## Dependencies
 
-- [Poky](https://git.yoctoproject.org/poky)
-- [Meta OpenEmbedded](https://git.openembedded.org/meta-openembedded)
+- [BitBake](https://github.com/openembedded/bitbake)
+- [OpenEmbedded-Core](https://github.com/openembedded/openembedded-core)
+- [Meta OpenEmbedded](https://github.com/openembedded/meta-openembedded)
+- [Meta Yocto](https://github.com/yoctoproject/meta-yocto)
+- [Meta LTS Mixins](https://git.yoctoproject.org/meta-lts-mixins)
 - [Meta SWUpdate](https://github.com/sbabic/meta-swupdate)
 - [Meta Qcom](https://github.com/qualcomm-linux/meta-qcom)
-- [Meta Qcom HWE](https://github.com/qualcomm-linux/meta-qcom-hwe)
 - [Meta 8dev](https://github.com/8devices/meta-8dev)
 
 ## Host Preparation
 
-1. Ensure your host system meets the [Yocto Project requirements](https://docs.yoctoproject.org/5.0.6/ref-manual/system-requirements.html)
+1. Ensure your host system meets the [Yocto Project requirements](https://docs.yoctoproject.org/6.0.1/ref-manual/system-requirements.html)
 2. Initialize and update the git submodules:
    ```
    git submodule update --init --recursive

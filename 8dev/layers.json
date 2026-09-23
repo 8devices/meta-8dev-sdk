@@ -1,7 +1,7 @@
 {
     "layers": [
         "../8dev",
-        "../poky/meta-poky"
+        "../meta-yocto/meta-poky"
     ],
     "version": "1.0"
 }

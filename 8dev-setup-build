@@ -30,11 +30,11 @@ set -- $ARGS
 # for template path which is passed further for ENV
 # initialisation.
 conf_list() {
-	$WSROOT/poky/scripts/oe-setup-build --layerlist `realpath 8dev/layers.json` list ${OPT_VERBOSE:+-v}
+	$WSROOT/openembedded-core/scripts/oe-setup-build --layerlist `realpath 8dev/layers.json` list ${OPT_VERBOSE:+-v}
 }
 
 conf_setup() {
-	$WSROOT/poky/scripts/oe-setup-build --layerlist `realpath 8dev/layers.json` setup --no-shell -c $1 ${2:+-b $2}
+	$WSROOT/openembedded-core/scripts/oe-setup-build --layerlist `realpath 8dev/layers.json` setup --no-shell -c $1 ${2:+-b $2}
 }
 
 if [ -n "$OPT_HELP" ]; then

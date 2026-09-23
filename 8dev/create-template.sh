@@ -23,7 +23,7 @@ if [ -d "$TEMPLATE_DIR" ]; then
 fi
 
 mkdir -p $TEMPLATE_DIR
-for f in $WSROOT/poky/meta-poky/conf/templates/default/*; do
+for f in $WSROOT/openembedded-core/meta/conf/templates/default/*; do
 	ln -s `realpath --relative-to $TEMPLATE_DIR $f` $TEMPLATE_DIR/`basename $f`
 done
 
