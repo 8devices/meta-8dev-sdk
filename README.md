@@ -12,6 +12,13 @@ and recipes to build the 8devices reference DISTRO for supported MACHINES.
 - [Meta Qcom HWE](https://github.com/qualcomm-linux/meta-qcom-hwe)
 - [Meta 8dev](https://github.com/8devices/meta-8dev)
 
+> **Note:** Meta Qcom HWE is vendored for the in-progress citron/QCS6490 work and
+> is not part of any build configuration yet. It is registered at a higher layer
+> priority than Poky and meta-openembedded, so adding it to `bblayers.conf`
+> silently replaces recipes such as `wpa-supplicant`, `hostapd` and `iw` with its
+> own versions. The citron machines (`citron`, `robovision`) require it and
+> cannot be built until it is enabled again.
+
 ## Host Preparation
 
 1. Ensure your host system meets the [Yocto Project requirements](https://docs.yoctoproject.org/5.0.6/ref-manual/system-requirements.html)
